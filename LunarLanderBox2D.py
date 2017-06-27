@@ -16,6 +16,7 @@ for _ in range(1000):
     action = env.action_space.sample()  # your agent here (this takes random actions)
     observation, reward, done, info = env.step(action)
     if done:
+        print("xPosition: ",observation[0],"yPosition: ",observation[1])
         env.reset()
 
 env.close()
