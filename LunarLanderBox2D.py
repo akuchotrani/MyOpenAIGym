@@ -24,7 +24,7 @@ env.reset()
 
 goal_steps = 500
 score_requirement = 0
-initial_games = 10000
+initial_games = 3000
 
 
 def play_some_random_games():
@@ -34,6 +34,7 @@ def play_some_random_games():
         for t in range(goal_steps):
             env.render()
             action = env.action_space.sample()
+            print("\n random actions: ",action)
             observation, reward, done, info  = env.step(action)
             
             if done:
@@ -112,26 +113,27 @@ def neural_network_model(input_size):
     
     #there are 128,256,512 nodes at 5 layers and the activation is rectified linear 'relu'
     network = fully_connected(network,128,activation = 'relu')
-    network = dropout(network,0.8)
+    network = dropout(network,0.5)
     
     network = fully_connected(network,256,activation = 'relu')
-    network = dropout(network,0.8)
+    network = dropout(network,0.5)
     
     network = fully_connected(network,512,activation = 'relu')
-    network = dropout(network,0.8)
+    network = dropout(network,0.5)
     
     network = fully_connected(network,256,activation = 'relu')
-    network = dropout(network,0.8)
+    network = dropout(network,0.5)
     
     network = fully_connected(network,128,activation = 'relu')
-    network = dropout(network,0.8)
+    network = dropout(network,0.5)
     
-    #output layer it takes 2 outputs
-    network = fully_connected(network,env.action_space.n,activation = 'softmax')
-    network = regression(network,optimizer = 'adam', learning_rate = LearningRate,
+    #output layer takes 2 outputs
+    network = fully_connected(network,4,activation = 'sigmoid')
+    network = regression(network,optimizer = 'sgd', learning_rate = LR,
                          loss = 'categorical_crossentropy', name = 'targets')
     
-    model = tflearn.DNN(network,tensorboard_dir = 'newLog')
+    #model = tflearn.DNN(network,tensorboard_dir = 'newLog')
+    model = tflearn.DNN(network,tensorboard_verbose = 3)
     return model
 
 
@@ -141,6 +143,7 @@ def train_model(training_data,model = False):
     #we waant to save the observation from training data which contains observation and action it took
     print('training data observarion length: ',len(training_data[0][0]))
     X = np.array([i[0] for i in training_data]).reshape(-1,len(training_data[0][0]),1)
+    print('\n\n X = ',X)
     Y = [i[1] for i in training_data]
     print('Y = ',Y)
     #print('X: ',X)
@@ -148,7 +151,7 @@ def train_model(training_data,model = False):
         print("len X[0]: ",len(X[0]))
         model = neural_network_model(input_size = len(X[0]))
         
-    model.fit({'input': X},{'targets':Y},n_epoch = 5, snapshot_step = 500, show_metric = True, run_id = 'openaistuff')
+    model.fit({'input': X},{'targets':Y},n_epoch = 3, snapshot_step = 500, show_metric = True, run_id = 'openaistuff')
     
     return model
 
@@ -175,10 +178,10 @@ for each_game in range(20):
             #lol = prev_obs.reshape(-1,len(prev_obs),1)[0]
             action = np.argmax(model.predict(prev_obs.reshape(-1,len(prev_obs),1))[0])
             
-            print("\n\nMy predicted Action:-")
+            #print("\n\nMy predicted Action:-")
            # print("\nprev_obs: ",lol)
-            print("\n predict: ",model.predict(prev_obs.reshape(-1,len(prev_obs),1))[0])
-            print("\n argmax: ",action)
+           # print("\n predict: ",model.predict(prev_obs.reshape(-1,len(prev_obs),1))[0])
+            #print("\n argmax: ",action)
         #just to see which choices our neural network makes 
         choices.append(action)
         
